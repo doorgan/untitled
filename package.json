@@ -1,13 +1,13 @@
 {
   "name": "untitled",
   "version": "0.1.0",
-  "description": "",
+  "description": "A simple custom elements utility",
   "main": "dist/cjs/index.js",
   "scripts": {
     "build": "rollup -c",
     "size": "cat dist/min.js | brotli | wc -c"
   },
-  "author": "",
+  "author": "dorgandash@gmail.com",
   "license": "ISC",
   "module": "dist/esm/index.js",
   "unkpkg": "dist/min.js",
@@ -24,5 +24,13 @@
     "rollup-plugin-terser": "^7.0.2",
     "terser": "^5.5.1",
     "typescript": "^4.1.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doorgan/untitled"
+  },
+  "bugs": {
+    "url": "https://github.com/doorgan/untitled/issues"
+  },
+  "homepage": "https://github.com/doorgan/untitled#readme"
 }
