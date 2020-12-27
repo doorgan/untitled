@@ -1,0 +1,28 @@
+{
+  "name": "untitled",
+  "version": "0.1.0",
+  "description": "",
+  "main": "dist/cjs/index.js",
+  "scripts": {
+    "build": "rollup -c",
+    "size": "cat dist/min.js | brotli | wc -c"
+  },
+  "author": "",
+  "license": "ISC",
+  "module": "dist/esm/index.js",
+  "unkpkg": "dist/min.js",
+  "dependencies": {
+    "flyd": "^0.2.8",
+    "mergerino": "^0.4.0",
+    "plain-tag": "^0.1.3",
+    "uhtml": "^2.1.4"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^8.1.0",
+    "@types/mergerino": "^0.4.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "terser": "^5.5.1",
+    "typescript": "^4.1.3"
+  }
+}
