@@ -1,6 +1,7 @@
 import { render, html } from "uhtml";
 import css from "plain-tag";
-import type { store, Store, Stream } from "./state";
+import type { Store, Stream } from "./state";
+import { store } from "./state";
 
 export interface Ref<T extends HTMLElement> {
   current: T | null
@@ -95,36 +96,14 @@ interface DefinitionConstructor {
 const extended_constructors = new Map<CustomElementConstructor, DefinitionConstructor>();
 
 /**
- * Creates a class that can be used to define a component with `define`. Since
- * `define` adds behaviour to the component by extending your own definition,
- * typescript will complain if you try to use methods like `useStore` or if you
- * try to use the component's `handleEvent` via `this.addEventListener(type, this)`.
- * This function is specially useful in those cases, it shouldn't be needed if
- * you use vanilla JS.
+ * Tricks typescript so it doesn't complain if you use methods that are added
+ * while defining the component.
  *
  * @param superclass The base class to extend, defaults to `HTMLElement`
  */
-const Component = (superclass: CustomElementConstructor = HTMLElement): DefinitionConstructor => {
-  let existing = extended_constructors.get(superclass);
-  if (existing) {
-    return existing;
-  }
-
-  const extended = class extends superclass {
-    slots!: Slots;
-
-    handleEvent(event: Event) {
-      Reflect.get(this, `handle_${event.type}`)(event);
-    }
-
-    useStore<T>(store: Store<T>): Store<T> {
-      return useStore(this, store);
-    }
-  }
-
-  extended_constructors.set(superclass, extended);
-
-  return extended;
+const Component = <T extends CustomElementConstructor>(superclass: T): DefinitionConstructor => {
+  if (!superclass) superclass = HTMLElement as T;
+  return superclass as unknown as DefinitionConstructor;
 }
 
 const active_streams = new WeakMap<object, Stream<any>[]>();

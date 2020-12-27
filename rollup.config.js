@@ -1,14 +1,26 @@
 
 import typescript from '@rollup/plugin-typescript';
-import resolve from 'rollup-plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
+import { getBabelOutputPlugin } from '@rollup/plugin-babel';
+import commonjs from '@rollup/plugin-commonjs';
+
+const babel = getBabelOutputPlugin({
+  presets: ['@babel/preset-env'],
+  plugins: [
+    '@babel/plugin-proposal-class-properties',
+    '@babel/plugin-proposal-optional-chaining'
+  ]
+});
 
 export default [
   {
     input: 'src/index.ts',
     plugins: [
-      resolve({ module: true }),
-      typescript()
+      nodeResolve(),
+      commonjs(),
+      typescript(),
+      babel
     ],
     output: [
       {
@@ -28,8 +40,10 @@ export default [
   {
     input: 'src/index.ts',
     plugins: [
-      resolve({ module: true }),
+      nodeResolve(),
+      commonjs(),
       typescript(),
+      babel,
       terser()
     ],
     output: [
