@@ -4,9 +4,12 @@ and the [meiosis pattern](https://meiosis.js.org/).
 
 ## Getting untitled
 Get the package from NPM
+
 `npm install --save @dorgandash/untitled`
 
+
 Or import it as an ES module
+
 `import { define } from "https://unpkg.com/@dorgandash/untitled?module"`
 
 ## Usage
