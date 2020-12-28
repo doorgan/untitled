@@ -194,7 +194,7 @@ Consider the following markup:
  definition.
  By default, `Component()` will be typed as HTMLElement. If you're
  trying to extend a constructor like `HTMLInputElement`, you can pass
- that constructor lik `Component(HTMLInputElement)` and it will extend
+ that constructor like `Component(HTMLInputElement)` and it will extend
  that type instead.
  
  So instead of defining your element like this:
@@ -202,7 +202,7 @@ Consider the following markup:
  define("my-input", class extends HTMLInputElement {})
  ```
  
- You would defined as follows:
+ You would define it as follows:
  ```js
  define("my-input", class extends Component(HTMLInputElement) {})
  ```
