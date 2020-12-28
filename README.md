@@ -7,7 +7,7 @@ Get the package from NPM
 `npm install --save @dorgandash/untitled`
 
 Or import it as an ES module
-`imrpot { define } from "https://unpkg.com/@dorgandash/untitled?module"`
+`import { define } from "https://unpkg.com/@dorgandash/untitled?module"`
 
 ## Usage
 You can see a [Live demo](https://codepen.io/dorgan/pen/LYReEmO?editors=1010) at codepen.io.
