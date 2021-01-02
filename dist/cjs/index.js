@@ -2040,15 +2040,14 @@ var ref$1 = function ref$1() {
  */
 
 
-var Component = function Component(superclass) {
-  if (!superclass) superclass = HTMLElement;
+var Component = function Component() {
+  var superclass = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : HTMLElement;
   return superclass;
 };
 
 var active_streams = new WeakMap();
 var ready_elements = new WeakSet();
 var updates_schedule = new Set();
-var constructors = new Map();
 /**
  * Defines a custom element component. I will create the definition only once,
  * so subsequent attempts to define an already defined element will result in a
@@ -2062,23 +2061,23 @@ var constructors = new Map();
 var define = function define(tag, definition) {
   var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-  var Class = constructors.get(definition) || /*#__PURE__*/function (_definition) {
-    _inherits(_class, _definition);
+  var Class = /*#__PURE__*/function (_definition) {
+    _inherits(Class, _definition);
 
-    var _super = _createSuper(_class);
+    var _super = _createSuper(Class);
 
-    function _class() {
-      _classCallCheck(this, _class);
+    function Class() {
+      _classCallCheck(this, Class);
 
       return _super.apply(this, arguments);
     }
 
-    _createClass(_class, [{
+    _createClass(Class, [{
       key: "connectedCallback",
       value: function connectedCallback() {
         var _this = this;
 
-        if (_get(_getPrototypeOf(_class.prototype), "connected", this)) _get(_getPrototypeOf(_class.prototype), "connected", this).call(this);
+        if (_get(_getPrototypeOf(Class.prototype), "connected", this)) _get(_getPrototypeOf(Class.prototype), "connected", this).call(this);
         this.dispatchEvent(new CustomEvent("connected"));
         setTimeout(function () {
           return _this.ready();
@@ -2089,8 +2088,8 @@ var define = function define(tag, definition) {
       value: function ready() {
         load_slots(this);
 
-        if (_get(_getPrototypeOf(_class.prototype), "ready", this)) {
-          _get(_getPrototypeOf(_class.prototype), "ready", this).call(this);
+        if (_get(_getPrototypeOf(Class.prototype), "ready", this)) {
+          _get(_getPrototypeOf(Class.prototype), "ready", this).call(this);
         }
 
         ready_elements.add(this);
@@ -2108,8 +2107,8 @@ var define = function define(tag, definition) {
         active_streams["delete"](this);
         ready_elements["delete"](this);
 
-        if (_get(_getPrototypeOf(_class.prototype), "disconnected", this)) {
-          _get(_getPrototypeOf(_class.prototype), "disconnected", this).call(this);
+        if (_get(_getPrototypeOf(Class.prototype), "disconnected", this)) {
+          _get(_getPrototypeOf(Class.prototype), "disconnected", this).call(this);
         }
 
         this.dispatchEvent(new CustomEvent("disconnected"));
@@ -2117,13 +2116,24 @@ var define = function define(tag, definition) {
     }, {
       key: "update",
       value: function update() {
-        if (_get(_getPrototypeOf(_class.prototype), "update", this)) _get(_getPrototypeOf(_class.prototype), "update", this).call(this);
-        if (this.render) render(this, this.render());
+        if (_get(_getPrototypeOf(Class.prototype), "update", this)) _get(_getPrototypeOf(Class.prototype), "update", this).call(this);
+        this.dispatchEvent(new CustomEvent("updated"));
+        this.performRender();
+      }
+    }, {
+      key: "performRender",
+      value: function performRender() {
+        if (_get(_getPrototypeOf(Class.prototype), "render", this)) {
+          render(this, _get(_getPrototypeOf(Class.prototype), "render", this).call(this));
+        }
+
+        this.dispatchEvent(new CustomEvent("rendered"));
       }
     }, {
       key: "handleEvent",
       value: function handleEvent(event) {
-        if (!_get(_getPrototypeOf(_class.prototype), "handleEvent", this)) Reflect.get(this, "handle_".concat(event.type))(event);else _get(_getPrototypeOf(_class.prototype), "handleEvent", this).call(this, event);
+        /* istanbul ignore next */
+        Reflect.get(this, "handle_".concat(event.type))(event);
       }
     }, {
       key: "useStore",
@@ -2132,7 +2142,7 @@ var define = function define(tag, definition) {
       }
     }]);
 
-    return _class;
+    return Class;
   }(definition);
 
   if (!customElements.get(tag)) customElements.define(tag, Class, opts);
@@ -2144,7 +2154,6 @@ var define = function define(tag, definition) {
     document.head.appendChild(style);
   }
 
-  constructors.set(definition, Class);
   return Class;
 };
 
@@ -2159,8 +2168,10 @@ var run_schedule = function run_schedule() {
 };
 
 var schedule_update = function schedule_update(element) {
+  /* instanbul ignore else */
   if (!updates_schedule.has(element)) {
     updates_schedule.add(element);
+    /* instanbul ignore else */
 
     if (updates_schedule.size === 1) {
       wait(run_schedule);

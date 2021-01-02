@@ -93,24 +93,19 @@ interface DefinitionConstructor {
   css?(tag: string): string;
 }
 
-const extended_constructors = new Map<CustomElementConstructor, DefinitionConstructor>();
-
 /**
  * Tricks typescript so it doesn't complain if you use methods that are added
  * while defining the component.
  *
  * @param superclass The base class to extend, defaults to `HTMLElement`
  */
-const Component = <T extends CustomElementConstructor>(superclass: T): DefinitionConstructor => {
-  if (!superclass) superclass = HTMLElement as T;
+const Component = <T extends CustomElementConstructor>(superclass: T = HTMLElement as T): DefinitionConstructor => {
   return superclass as unknown as DefinitionConstructor;
 }
 
 const active_streams = new WeakMap<object, Stream<any>[]>();
 const ready_elements = new WeakSet();
 let updates_schedule = new Set<Definition>();
-
-const constructors = new Map<DefinitionConstructor, DefinitionConstructor>();
 
 /**
  * Defines a custom element component. I will create the definition only once,
@@ -123,7 +118,7 @@ const constructors = new Map<DefinitionConstructor, DefinitionConstructor>();
  */
 const define = (tag: string, definition: DefinitionConstructor, opts: ElementDefinitionOptions = {}): DefinitionConstructor => {
 
-  const Class = constructors.get(definition) || class extends definition {
+  const Class = class extends definition {
     connectedCallback() {
       if (super.connected) super.connected();
 
@@ -164,14 +159,23 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
     update() {
       if (super.update)
         super.update();
-      if (this.render) render(this, this.render());
+
+      this.dispatchEvent(new CustomEvent("updated"));
+
+      this.performRender();
+    }
+
+    performRender() {
+      if (super.render) {
+        render(this, super.render());
+      }
+
+      this.dispatchEvent(new CustomEvent("rendered"));
     }
 
     handleEvent(event: Event) {
-      if (!super.handleEvent)
-        Reflect.get(this, `handle_${event.type}`)(event);
-      else
-        super.handleEvent(event);
+      /* istanbul ignore next */
+      Reflect.get(this, `handle_${event.type}`)(event);
     }
 
     useStore<T>(store: Store<T>): Store<T> {
@@ -188,8 +192,6 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
     document.head.appendChild(style);
   }
 
-  constructors.set(definition, Class);
-
   return Class;
 }
 
@@ -202,9 +204,11 @@ const run_schedule = () => {
 }
 
 const schedule_update = (element: Definition) => {
+  /* instanbul ignore else */
   if (!updates_schedule.has(element)) {
     updates_schedule.add(element);
 
+    /* instanbul ignore else */
     if (updates_schedule.size === 1) {
       wait(run_schedule);
     }
