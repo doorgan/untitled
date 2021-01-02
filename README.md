@@ -3,7 +3,7 @@ A simple custom elements helper based on [uhtml](https://github.com/WebReflectio
 and the [meiosis pattern](https://meiosis.js.org/).
 
 [![Coverage Status](https://coveralls.io/repos/github/doorgan/untitled/badge.svg?branch=master)](https://coveralls.io/github/doorgan/untitled?branch=master)
-![NPM Version](https://badgen.net/npm/v/@dorgandash/untitled)
+[![NPM Version](https://badgen.net/npm/v/@dorgandash/untitled)](https://www.npmjs.com/package/@dorgandash/untitled)
 ![Lincese](https://badgen.net/github/license/doorgan/untitled)
 
 ## Getting untitled
