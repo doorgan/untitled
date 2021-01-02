@@ -1,6 +1,6 @@
 {
   "name": "@dorgandash/untitled",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "A simple custom elements utility",
   "main": "dist/esm/index.js",
   "scripts": {
