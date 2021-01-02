@@ -2,6 +2,8 @@
 A simple custom elements helper based on [uhtml](https://github.com/WebReflection/uce)
 and the [meiosis pattern](https://meiosis.js.org/).
 
+[![Coverage Status](https://coveralls.io/repos/github/doorgan/untitled/badge.svg?branch=master)](https://coveralls.io/github/doorgan/untitled?branch=master)
+
 ## Getting untitled
 Get the package from NPM
 
@@ -210,19 +212,3 @@ Consider the following markup:
  define("my-input", class extends Component(HTMLInputElement) {})
  ```
  
-## License
-ISC License
-
-Copyright (c) 2020, @doorgan
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
