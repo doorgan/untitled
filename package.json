@@ -9,7 +9,7 @@
     "test": "jest --coverage"
   },
   "author": "dorgandash@gmail.com",
-  "license": "ISC",
+  "license": "MIT",
   "module": "dist/esm/index.js",
   "unkpkg": "dist/min.js",
   "types": "types/index.d.ts",
