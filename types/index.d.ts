@@ -1,8 +1,8 @@
 import { html } from "uhtml";
 import css from "plain-tag";
-import type { Store } from "./state";
+import type { Store, Stream, Patch } from "./state";
 import { store } from "./state";
-export interface Ref<T extends HTMLElement> {
+interface Ref<T extends HTMLElement> {
     current: T | null;
 }
 /**
@@ -103,3 +103,4 @@ declare const define: (tag: string, definition: DefinitionConstructor, opts?: El
  */
 declare const useStore: <T>(element: Definition, store: Store<T>) => Store<T>;
 export { Component, define, css, html, ref, store, useStore };
+export type { Patch, Ref, Store, Stream };
