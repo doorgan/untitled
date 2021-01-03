@@ -234,20 +234,28 @@ const ready_slots = new WeakSet();
 const load_slots = (element: Definition) => {
   // Find slots
   if (!ready_slots.has(element)) {
-    let default_slots: Node[] = [];
-    let slots: Record<string, Node> = {};
-    Array.from(element.childNodes).forEach(el => {
-      const slotName = (el instanceof Element) ? el.getAttribute('slot') : null;
-
-      if (slotName) {
-        slots[slotName] = el
-      } else {
-        default_slots.push(el);
-      }
-    });
-    Reflect.set(element, "slots", { default: default_slots, ...slots });
+    const slots = get_slots_in(element);
+    Reflect.set(element, "slots", slots);
     ready_slots.add(element);
   }
+}
+
+const get_slots_in = (element: Node): Slots => {
+  let default_slots: Node[] = [];
+  let slots: Record<string, Node> = {};
+  for (let el of Array.from(element.childNodes)) {
+    if (el instanceof HTMLTemplateElement) return get_slots_in(el.content);
+
+    const slotName = (el instanceof Element) ? el.getAttribute('slot') : null;
+
+    if (slotName) {
+      slots[slotName] = el
+    } else {
+      default_slots.push(el);
+    }
+  };
+
+  return { default: default_slots, ...slots } as Slots;
 }
 
 /**

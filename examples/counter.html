@@ -38,22 +38,6 @@
         `
       }
     })
-
-
-    class MyElement extends Component() {
-      render() {
-        return html`<h1>Hello world!</h1>`
-      };
-    }
-    define("my-tag", MyElement);
-
-    const el = document.createElement("my-tag");
-    document.body.appendChild(el);
-
-    el.addEventListener("rendered", () => {
-      const title = el.querySelector("h1");
-      console.log(title, el.render())
-    })
   </script>
 </head>
 

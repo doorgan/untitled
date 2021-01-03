@@ -34,7 +34,9 @@ describe('Definitions', () => {
     // Should not throw an already registered error
     define(tag, MyElement);
   })
+})
 
+describe('Callbacks', () => {
   test('Renders content', async () => {
     class MyElement extends Component() {
       render() {
@@ -78,7 +80,9 @@ describe('Definitions', () => {
     el.remove();
     await disconnected_promise;
   })
+})
 
+describe('Stores', () => {
   test('Consecutive store updates trigger a single component update', async () => {
     const State = store({ count: 0 });
     const inc = () => State.update(state => ({ count: state.count + 1 }))
@@ -119,69 +123,70 @@ describe('Definitions', () => {
     inc();
     expect(updates_counter).toBe(1)
   })
+})
 
-  test('Uses handleEvent', async () => {
-    const called = jest.fn();
-    class MyElement extends Component() {
-      btn!: Ref<HTMLButtonElement>;
-      ready() {
-        this.btn = ref();
-      }
-
-      render() {
-        return html`<button onclick=${this} ref=${this.btn}>Test</button>`
-      }
-
-      handle_click = (_event: Event) => {
-        called();
-      }
+test('Uses handleEvent', async () => {
+  const called = jest.fn();
+  class MyElement extends Component() {
+    btn!: Ref<HTMLButtonElement>;
+    ready() {
+      this.btn = ref();
     }
-    define(tag, MyElement);
 
-    const el = document.createElement(tag) as MyElement;
-    document.body.appendChild(el);
-    const handleEvent_spy = jest.spyOn(el, "handleEvent");
-    const handler_spy = jest.spyOn(el, "handle_click");
+    render() {
+      return html`<button onclick=${this} ref=${this.btn}>Test</button>`
+    }
 
-    await event_promise(el, "rendered");
-    el.btn.current!.click();
+    handle_click = (_event: Event) => {
+      called();
+    }
+  }
+  define(tag, MyElement);
 
-    expect(handleEvent_spy).toHaveBeenCalled();
-    expect(handler_spy).toHaveBeenCalled();
-    expect(called).toHaveBeenCalled();
-  })
+  const el = document.createElement(tag) as MyElement;
+  document.body.appendChild(el);
+  const handleEvent_spy = jest.spyOn(el, "handleEvent");
+  const handler_spy = jest.spyOn(el, "handle_click");
 
-  test('Injects styles', async () => {
-    class MyElement extends Component() {
-      static css = (self: string) => css`
+  await event_promise(el, "rendered");
+  el.btn.current!.click();
+
+  expect(handleEvent_spy).toHaveBeenCalled();
+  expect(handler_spy).toHaveBeenCalled();
+  expect(called).toHaveBeenCalled();
+})
+
+test('Injects styles', async () => {
+  class MyElement extends Component() {
+    static css = (self: string) => css`
         ${self} {
           color: red;
         }
       `
-    }
-    define(tag, MyElement);
-    define(`builtin-${tag}`, MyElement, { extends: "div" });
+  }
+  define(tag, MyElement);
+  define(`builtin-${tag}`, MyElement, { extends: "div" });
 
-    const el = document.createElement(tag);
+  const el = document.createElement(tag);
 
-    document.body.appendChild(el);
-    const style = getComputedStyle(el);
-    expect(style.color).toBe("red");
+  document.body.appendChild(el);
+  const style = getComputedStyle(el);
+  expect(style.color).toBe("red");
 
-    const builtin = document.createElement(tag);
-    builtin.setAttribute("is", `builtin-${tag}`);
-    document.body.appendChild(builtin);
-    const builtin_style = getComputedStyle(el);
-    expect(builtin_style.color).toBe("red");
-  })
+  const builtin = document.createElement(tag);
+  builtin.setAttribute("is", `builtin-${tag}`);
+  document.body.appendChild(builtin);
+  const builtin_style = getComputedStyle(el);
+  expect(builtin_style.color).toBe("red");
+})
 
-  test('Loads slots', async () => {
-    class MyElement extends Component() {
-      default_container = ref();
-      slot_container = ref();
+test('Loads slots', async () => {
+  class MyElement extends Component() {
+    default_container = ref();
+    slot_container = ref();
 
-      render() {
-        return html`
+    render() {
+      return html`
           <div ref=${this.default_container}>
             ${this.slots.default.map(x => x)}
           </div>
@@ -189,29 +194,68 @@ describe('Definitions', () => {
             ${this.slots.slot}
           </div>
         `
-      }
     }
-    define("slots-el", MyElement);
+  }
+  define("slots-el-1", MyElement);
 
-    const el_ref = ref<MyElement>();
-    render(document.body, html`
-      <slots-el ref=${el_ref}>
+  const el_ref = ref<MyElement>();
+  render(document.body, html`
+      <slots-el-1 ref=${el_ref}>
         Text content
         <h1 slot="slot">Title</h1>
         <p>Some paragraph</p>
-      </slots-el>
+      </slots-el-1>
     `)
 
-    await sleep();
+  await sleep();
 
-    const el = el_ref.current!;
-    expect(el.slots.default.length).toBe(4); // The 4 comes from logging the default slots length for the test html
-    expect(el.slots.slot).toBeTruthy();
+  const el = el_ref.current!;
+  expect(el.slots.default.length).toBeGreaterThan(0);
+  expect(el.slots.slot instanceof HTMLHeadingElement).toBeTruthy();
 
-    el.slots.default.map(element => {
-      expect(el.default_container.current!.contains(element)).toBeTruthy()
-    })
-    expect(el.slot_container.current!.contains(el.slots.slot)).toBeTruthy();
-
+  el.slots.default.map(element => {
+    expect(el.default_container.current!.contains(element)).toBeTruthy()
   })
+  expect(el.slot_container.current!.contains(el.slots.slot)).toBeTruthy();
+
+})
+
+test('Template tag slots', async () => {
+  class MyElement extends Component() {
+    default_container = ref();
+    slot_container = ref();
+
+    render() {
+      return html`
+        <div ref=${this.default_container}>
+          ${this.slots.default.map(x => x)}
+        </div>
+        <div ref=${this.slot_container}>
+          ${this.slots.slot}
+        </div>
+      `
+    }
+  }
+  define("slots-el-2", MyElement);
+
+  const template = document.createElement("template");
+  render(template.content, html`
+      Text content
+      <h1 slot="slot">Title</h1>
+      <p>Some paragraph</p>
+    `)
+
+  const el = document.createElement("slots-el-2") as MyElement;
+  el.appendChild(template);
+  document.body.appendChild(el);
+
+  await sleep();
+
+  expect(el.slots.default.length).toBeGreaterThan(0);
+  expect(el.slots.slot instanceof HTMLHeadingElement).toBeTruthy();
+
+  el.slots.default.map(element => {
+    expect(el.default_container.current!.contains(element)).toBeTruthy()
+  })
+  expect(el.slot_container.current!.contains(el.slots.slot)).toBeTruthy();
 })

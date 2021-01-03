@@ -167,50 +167,74 @@ right before the `ready` callback, untitled will load all
 slots in the element's `slot` property.
 
 Consider the following markup:
- ```html
+```html
  <my-element>
    Hello world!
    <button slot="action">Press me!</button>
    <p>I'm a paragraph!</p>
  </my-element>
- ```
- The element's `this.slots` will look like this:
- ```js
- {
-   default: [
-     #text "Hello world!"
-     <p>I'm a paragraph!</p>
-   ],
-   action: <button slot="action">Press me!</button>
- }
- ```
+```
+The element's `this.slots` will look like this:
+```js
+{
+  default: [
+    #text "Hello world!",
+    <p>I'm a paragraph!</p>
+  ],
+  action: <button slot="action">Press me!</button>
+}
+```
+
+### Using template elements for slots
+You may notice that while the above example works, there's a time span in which
+you can see the original contents of the element before the component
+initializes, slots are fetched and component is rendered. It may be tempting to
+apply some styling to the element, like `display: hidden;` while it's initializing,
+but that won't prevent the browser from parsing and running the effects of the
+inner nodes. For instance, images will be loaded and scripts will be executed.
+
+To mitigate this, untitled allows you to use a `<template>` node. The advantage
+of template tags are that it's contents are inert, and that we don't have to
+manually parse it's contents as is the case with the
+`<script type="text/template">` hack.
+
+The above example would be rewritten as this:
+```html
+ <my-element>
+    <template>
+      Hello world!
+      <button slot="action">Press me!</button>
+      <p>I'm a paragraph!</p>
+    </template>
+ </my-element>
+```
  
- ## Refs
- DOM References work the same way React refs work, so you
- can read the [React docs](https://reactjs.org/docs/refs-and-the-dom.html)
- on the subject to understand how it work. The only difference is that
- references are created with the exported `ref` function.
- 
- ## Typescript caveats
- If you're using typescript and try to extend a builtin constructor
- like `HTMLElement`, you will notice that typescript will complain
- about things like `this.useStore` not being present in the HTMLElement
- interface. To avoid this, untitled provides a `Component` function that
- tricks typescript into thinking the properties and methods added to
- your definition when calling `define` are indeed present in your own
- definition.
- By default, `Component()` will be typed as HTMLElement. If you're
- trying to extend a constructor like `HTMLInputElement`, you can pass
- that constructor like `Component(HTMLInputElement)` and it will extend
- that type instead.
- 
- So instead of defining your element like this:
- ```js
- define("my-input", class extends HTMLInputElement {})
- ```
- 
- You would define it as follows:
- ```js
- define("my-input", class extends Component(HTMLInputElement) {})
- ```
- 
+## Refs
+DOM References work the same way React refs work, so you
+can read the [React docs](https://reactjs.org/docs/refs-and-the-dom.html)
+on the subject to understand how it work. The only difference is that
+references are created with the exported `ref` function.
+
+## Typescript caveats
+If you're using typescript and try to extend a builtin constructor
+like `HTMLElement`, you will notice that typescript will complain
+about things like `this.useStore` not being present in the HTMLElement
+interface. To avoid this, untitled provides a `Component` function that
+tricks typescript into thinking the properties and methods added to
+your definition when calling `define` are indeed present in your own
+definition.
+By default, `Component()` will be typed as HTMLElement. If you're
+trying to extend a constructor like `HTMLInputElement`, you can pass
+that constructor like `Component(HTMLInputElement)` and it will extend
+that type instead.
+
+So instead of defining your element like this:
+```js
+define("my-input", class extends HTMLInputElement {})
+```
+
+You would define it as follows:
+```js
+define("my-input", class extends Component(HTMLInputElement) {})
+```
+

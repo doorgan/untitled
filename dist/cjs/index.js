@@ -2200,22 +2200,31 @@ var ready_slots = new WeakSet();
 var load_slots = function load_slots(element) {
   // Find slots
   if (!ready_slots.has(element)) {
-    var default_slots = [];
-    var slots = {};
-    Array.from(element.childNodes).forEach(function (el) {
-      var slotName = el instanceof Element ? el.getAttribute('slot') : null;
-
-      if (slotName) {
-        slots[slotName] = el;
-      } else {
-        default_slots.push(el);
-      }
-    });
-    Reflect.set(element, "slots", _objectSpread({
-      "default": default_slots
-    }, slots));
+    var slots = get_slots_in(element);
+    Reflect.set(element, "slots", slots);
     ready_slots.add(element);
   }
+};
+
+var get_slots_in = function get_slots_in(element) {
+  var default_slots = [];
+  var slots = {};
+
+  for (var _i3 = 0, _Array$from = Array.from(element.childNodes); _i3 < _Array$from.length; _i3++) {
+    var el = _Array$from[_i3];
+    if (el instanceof HTMLTemplateElement) return get_slots_in(el.content);
+    var slotName = el instanceof Element ? el.getAttribute('slot') : null;
+
+    if (slotName) {
+      slots[slotName] = el;
+    } else {
+      default_slots.push(el);
+    }
+  }
+
+  return _objectSpread({
+    "default": default_slots
+  }, slots);
 };
 /**
  * Subscribe to changes in the store state and triggers a component update.
