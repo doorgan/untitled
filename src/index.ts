@@ -160,7 +160,7 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
       load_slots(this);
 
       // @ts-ignore
-      if (definition.props) reactive(this, definition.props, () => schedule_update(this))
+      if (this.props) reactive(this, this.props, () => schedule_update(this))
 
       if (super.ready) {
         super.ready();
@@ -246,11 +246,9 @@ const run_schedule = () => {
 }
 
 const schedule_update = (element: Definition) => {
-  /* instanbul ignore else */
   if (!updates_schedule.has(element)) {
     updates_schedule.add(element);
 
-    /* instanbul ignore else */
     if (updates_schedule.size === 1) {
       wait(run_schedule);
     }
@@ -258,8 +256,8 @@ const schedule_update = (element: Definition) => {
 }
 
 const wait = (callback: Function) => {
-  (window.queueMicrotask)
-    ? window.queueMicrotask(callback as VoidFunction)
+  (typeof queueMicrotask === 'function')
+    ? queueMicrotask(callback as VoidFunction)
     : new Promise<void>(r => r()).then(callback as VoidFunction);
 }
 

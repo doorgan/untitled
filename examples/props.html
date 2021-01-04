@@ -22,7 +22,7 @@
           i = cycle(i);
           this.color = `hsl(${i} 100% 50%)`;
           this.update();
-        }, 32);
+        });
       }
 
       render() {
@@ -64,7 +64,7 @@
     perfMonitor.startFPSMonitor();
     perfMonitor.startMemMonitor();
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 100; i++) {
       const el = document.createElement("my-element");
       document.body.appendChild(el);
     }

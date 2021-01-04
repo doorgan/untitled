@@ -270,3 +270,30 @@ test('Template tag slots', async () => {
   })
   expect(el.slot_container.current!.contains(el.slots.slot)).toBeTruthy();
 })
+
+test('Reactive props', async () => {
+  class MyElement extends Component() {
+    static props = { count: 1 }
+    count: number = 1;
+
+    render() {
+      return html`<span>${this.count}</span>`
+    }
+  }
+  define(tag, MyElement);
+
+  const el = document.createElement(tag) as MyElement;
+  document.body.appendChild(el);
+
+  await event_promise(el, "rendered");
+
+  expect(el.count).toBe(1);
+  const span = el.querySelector("span")!;
+  expect(span.textContent).toBe("1");
+
+  el.count = 5;
+
+  await event_promise(el, "rendered");
+
+  expect(span.textContent).toBe("5");
+})
