@@ -1,5 +1,5 @@
 import { render } from "uhtml";
-import { define, Component, html, css, store, ref, Ref } from "./index";
+import { define, Component, html, css, store, ref, Ref, AugmentedDefinition } from "./index";
 
 const event_promise = (element: HTMLElement, type: string) => new Promise(resolve => {
   element.addEventListener(type, resolve);
@@ -49,9 +49,18 @@ describe('Callbacks', () => {
     document.body.appendChild(el);
     await event_promise(el, "rendered");
 
-    const title = el.querySelector("h1");
+    const title = el.querySelector!("h1");
     expect(title instanceof HTMLHeadingElement).toBe(true);
-    expect(title.textContent).toBe("Hello world!");
+    expect(title!.textContent).toBe("Hello world!");
+
+    const render_spy = jest.spyOn(el, "performRender");
+
+    el.update!();
+    el.update!();
+
+    await event_promise(el, "rendered");
+
+    expect(render_spy).toHaveBeenCalledTimes(1);
   })
 
   test('Fires lifecycle events', async () => {

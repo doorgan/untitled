@@ -57,6 +57,8 @@ interface DefinitionCallbacks {
    */
   render?(): ReturnType<typeof html>;
 
+  performRender(): void;
+
   handleEvent(event: Event): void;
 
   /**
@@ -94,18 +96,18 @@ interface DefinitionCallbacks {
   readonly props: Record<string, any>;
 }
 
-interface Definition extends HTMLElement, Partial<CustomHandlers>, DefinitionCallbacks { };
+export interface Definition extends HTMLElement, Partial<CustomHandlers>, DefinitionCallbacks { };
 
-interface DefinitionConstructor {
+export interface DefinitionConstructor {
   new(...params: any[]): Definition;
   css?(tag: string): string;
 }
 
-interface AugmentedDefinition extends HTMLElement, Partial<CustomHandlers>, Required<DefinitionCallbacks> {
+export interface AugmentedDefinition extends HTMLElement, Partial<CustomHandlers>, Required<DefinitionCallbacks> {
   performRender: () => void;
 }
 
-interface AugmentedDefinitionConstructor {
+export interface AugmentedDefinitionConstructor extends DefinitionConstructor {
   new(...params: any[]): AugmentedDefinition;
 }
 
@@ -122,6 +124,7 @@ const Component = <T extends CustomElementConstructor>(superclass: T = HTMLEleme
 const active_streams = new WeakMap<object, Stream<any>[]>();
 const ready_elements = new WeakSet();
 let updates_schedule = new Set<Definition>();
+let scheduled_renders = new WeakMap();
 
 /**
  * Defines a custom element component. I will create the definition only once,
@@ -135,8 +138,6 @@ let updates_schedule = new Set<Definition>();
 const define = (tag: string, definition: DefinitionConstructor, opts: ElementDefinitionOptions = {}): AugmentedDefinitionConstructor => {
 
   const Class = class extends definition {
-    scheduled_render?: number;
-
     connectedCallback() {
       this.connected();
 
@@ -195,12 +196,15 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
     }
 
     private schedule_render() {
-      if (this.scheduled_render)
-        cancelAnimationFrame(this.scheduled_render);
-      this.scheduled_render = requestAnimationFrame(() => {
-        this.scheduled_render = undefined;
-        this.performRender();
-      })
+      if (scheduled_renders.has(this))
+        cancelAnimationFrame(scheduled_renders.get!(this));
+
+      scheduled_renders.set(this,
+        requestAnimationFrame(() => {
+          scheduled_renders.delete(this);
+          this.performRender();
+        })
+      )
     }
 
     performRender() {
