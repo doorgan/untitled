@@ -17,6 +17,7 @@
     "flyd": "^0.2.8",
     "mergerino": "^0.4.0",
     "plain-tag": "^0.1.3",
+    "reactive-props": "^0.2.1",
     "uhtml": "^2.1.4"
   },
   "devDependencies": {

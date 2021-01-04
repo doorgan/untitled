@@ -2,8 +2,6 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -27,6 +25,8 @@ function _assertThisInitialized(self) { if (self === void 0) { throw new Referen
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
 
@@ -2014,12 +2014,84 @@ var store = function store(initial) {
     update: update
   });
 };
+
+var defineProperties$1 = Object.defineProperties,
+    keys = Object.keys;
+
+var accessor = function accessor(all, shallow, hook, value, update) {
+  return {
+    configurable: true,
+    get: function get() {
+      return value;
+    },
+    set: function set(_) {
+      if (all || _ !== value || shallow && _typeof(_) === 'object' && _) {
+        value = _;
+        if (hook) update.call(this, value);else update.call(this);
+      }
+    }
+  };
+};
+
+var loop = function loop(props, get, all, shallow, useState, update) {
+  var desc = {};
+  var hook = useState !== noop;
+  var args = [all, shallow, hook];
+
+  for (var ke = keys(props), y = 0; y < ke.length; y++) {
+    var value = get(props, ke[y]);
+    var extras = hook ? useState(value) : [value, useState];
+    if (update) extras[1] = update;
+    desc[ke[y]] = accessor.apply(null, args.concat(extras));
+  }
+
+  return desc;
+};
+
+var noop = function noop() {};
+
+var DOMHandler = function DOMHandler() {
+  var _ref8 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+      _ref8$all = _ref8.all,
+      all = _ref8$all === void 0 ? false : _ref8$all,
+      _ref8$shallow = _ref8.shallow,
+      shallow = _ref8$shallow === void 0 ? true : _ref8$shallow,
+      _ref8$useState = _ref8.useState,
+      useState = _ref8$useState === void 0 ? noop : _ref8$useState,
+      _ref8$getAttribute = _ref8.getAttribute,
+      getAttribute = _ref8$getAttribute === void 0 ? function (element, key) {
+    return element.getAttribute(key);
+  } : _ref8$getAttribute;
+
+  return function (element, props, update) {
+    var value = function value(props, key) {
+      var result = props[key],
+          type = _typeof(result);
+
+      if (element.hasOwnProperty(key)) {
+        result = element[key];
+        delete element[key];
+      } else if (element.hasAttribute(key)) {
+        result = getAttribute(element, key);
+        if (type == 'number') result = +result;else if (type == 'boolean') result = !/^(?:false|0|)$/.test(result);
+      }
+
+      return result;
+    };
+
+    var desc = loop(props, value, all, shallow, useState, update);
+    return defineProperties$1(element, desc);
+  };
+};
+
+var reactive = DOMHandler({
+  dom: true
+});
 /**
  * Creates a reference to be used in templates.
  * If an element has a `ref=${my_ref}` attribute in a template, the
  * `my_ref.current` will be set to that element once it's rendered.
  */
-
 
 var ref$1 = function ref$1() {
   return {
@@ -2053,34 +2125,63 @@ var updates_schedule = new Set();
  */
 
 var define = function define(tag, definition) {
-  var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var _temp;
 
-  var Class = /*#__PURE__*/function (_definition) {
+  var opts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var Class = (_temp = /*#__PURE__*/function (_definition) {
     _inherits(Class, _definition);
 
     var _super = _createSuper(Class);
 
     function Class() {
+      var _this;
+
       _classCallCheck(this, Class);
 
-      return _super.apply(this, arguments);
+      for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
+      }
+
+      _this = _super.call.apply(_super, [this].concat(args));
+
+      _defineProperty(_assertThisInitialized(_this), "scheduled_render", void 0);
+
+      return _this;
     }
 
     _createClass(Class, [{
       key: "connectedCallback",
       value: function connectedCallback() {
-        var _this = this;
+        var _this2 = this;
 
-        if (_get(_getPrototypeOf(Class.prototype), "connected", this)) _get(_getPrototypeOf(Class.prototype), "connected", this).call(this);
+        this.connected();
         this.dispatchEvent(new CustomEvent("connected"));
         setTimeout(function () {
-          return _this.ready();
+          return _this2.ready();
         });
+      }
+    }, {
+      key: "connected",
+      value: function connected() {
+        if (_get(_getPrototypeOf(Class.prototype), "connected", this)) _get(_getPrototypeOf(Class.prototype), "connected", this).call(this);
+      }
+    }, {
+      key: "disconnected",
+      value: function disconnected() {
+        if (_get(_getPrototypeOf(Class.prototype), "disconnected", this)) {
+          _get(_getPrototypeOf(Class.prototype), "disconnected", this).call(this);
+        }
       }
     }, {
       key: "ready",
       value: function ready() {
-        load_slots(this);
+        var _this3 = this;
+
+        load_slots(this); // @ts-ignore
+
+        if (definition.props) reactive(this, definition.props, function () {
+          return schedule_update(_this3);
+        });
 
         if (_get(_getPrototypeOf(Class.prototype), "ready", this)) {
           _get(_getPrototypeOf(Class.prototype), "ready", this).call(this);
@@ -2100,11 +2201,7 @@ var define = function define(tag, definition) {
         });
         active_streams["delete"](this);
         ready_elements["delete"](this);
-
-        if (_get(_getPrototypeOf(Class.prototype), "disconnected", this)) {
-          _get(_getPrototypeOf(Class.prototype), "disconnected", this).call(this);
-        }
-
+        this.disconnected();
         this.dispatchEvent(new CustomEvent("disconnected"));
       }
     }, {
@@ -2112,7 +2209,19 @@ var define = function define(tag, definition) {
       value: function update() {
         if (_get(_getPrototypeOf(Class.prototype), "update", this)) _get(_getPrototypeOf(Class.prototype), "update", this).call(this);
         this.dispatchEvent(new CustomEvent("updated"));
-        this.performRender();
+        this.schedule_render();
+      }
+    }, {
+      key: "schedule_render",
+      value: function schedule_render() {
+        var _this4 = this;
+
+        if (this.scheduled_render) cancelAnimationFrame(this.scheduled_render);
+        this.scheduled_render = requestAnimationFrame(function () {
+          _this4.scheduled_render = undefined;
+
+          _this4.performRender();
+        });
       }
     }, {
       key: "performRender",
@@ -2137,8 +2246,7 @@ var define = function define(tag, definition) {
     }]);
 
     return Class;
-  }(definition);
-
+  }(definition), _temp);
   if (!customElements.get(tag)) customElements.define(tag, Class, opts);
 
   if (definition.css) {

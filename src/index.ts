@@ -2,6 +2,10 @@ import { render, html } from "uhtml";
 import css from "plain-tag";
 import type { Store, Stream, Patch } from "./state";
 import { store } from "./state";
+// @ts-ignore
+import DOMHandler from "reactive-props/esm/dom.js";
+
+const reactive = DOMHandler({ dom: true });
 
 interface Ref<T extends HTMLElement> {
   current: T | null
@@ -21,7 +25,7 @@ type CustomHandlers = Record<
   EventListener
 >;
 
-interface Definition extends HTMLElement, Partial<CustomHandlers> {
+interface DefinitionCallbacks {
   /**
    * Invoked each time the custom element is appended into a document-connected
    * element. This will happen each time the node is moved, and may happen
@@ -86,11 +90,23 @@ interface Definition extends HTMLElement, Partial<CustomHandlers> {
    * ```
    */
   readonly slots: Slots;
-};
+
+  readonly props: Record<string, any>;
+}
+
+interface Definition extends HTMLElement, Partial<CustomHandlers>, DefinitionCallbacks { };
 
 interface DefinitionConstructor {
   new(...params: any[]): Definition;
   css?(tag: string): string;
+}
+
+interface AugmentedDefinition extends HTMLElement, Partial<CustomHandlers>, Required<DefinitionCallbacks> {
+  performRender: () => void;
+}
+
+interface AugmentedDefinitionConstructor {
+  new(...params: any[]): AugmentedDefinition;
 }
 
 /**
@@ -116,19 +132,34 @@ let updates_schedule = new Set<Definition>();
  * @param definition The custom element definition
  * @param opts
  */
-const define = (tag: string, definition: DefinitionConstructor, opts: ElementDefinitionOptions = {}): DefinitionConstructor => {
+const define = (tag: string, definition: DefinitionConstructor, opts: ElementDefinitionOptions = {}): AugmentedDefinitionConstructor => {
 
   const Class = class extends definition {
+    scheduled_render?: number;
+
     connectedCallback() {
-      if (super.connected) super.connected();
+      this.connected();
 
       this.dispatchEvent(new CustomEvent("connected"));
 
       setTimeout(() => this.ready());
     }
 
+    connected() {
+      if (super.connected) super.connected();
+    }
+
+    disconnected() {
+      if (super.disconnected) {
+        super.disconnected();
+      }
+    }
+
     ready() {
       load_slots(this);
+
+      // @ts-ignore
+      if (definition.props) reactive(this, definition.props, () => schedule_update(this))
 
       if (super.ready) {
         super.ready();
@@ -149,9 +180,7 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
       active_streams.delete(this);
       ready_elements.delete(this);
 
-      if (super.disconnected) {
-        super.disconnected();
-      }
+      this.disconnected();
 
       this.dispatchEvent(new CustomEvent("disconnected"));
     }
@@ -162,7 +191,16 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
 
       this.dispatchEvent(new CustomEvent("updated"));
 
-      this.performRender();
+      this.schedule_render();
+    }
+
+    private schedule_render() {
+      if (this.scheduled_render)
+        cancelAnimationFrame(this.scheduled_render);
+      this.scheduled_render = requestAnimationFrame(() => {
+        this.scheduled_render = undefined;
+        this.performRender();
+      })
     }
 
     performRender() {
@@ -181,7 +219,7 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
     useStore<T>(store: Store<T>): Store<T> {
       return useStore(this, store);
     }
-  };
+  } as AugmentedDefinitionConstructor;
 
   if (!customElements.get(tag)) customElements.define(tag, Class, opts)
 

@@ -17,7 +17,7 @@ declare type Slots = {
     [key: string]: Node;
 };
 declare type CustomHandlers = Record<`handle_${keyof HTMLElementEventMap}`, EventListener>;
-interface Definition extends HTMLElement, Partial<CustomHandlers> {
+interface DefinitionCallbacks {
     /**
      * Invoked each time the custom element is appended into a document-connected
      * element. This will happen each time the node is moved, and may happen
@@ -75,10 +75,19 @@ interface Definition extends HTMLElement, Partial<CustomHandlers> {
      * ```
      */
     readonly slots: Slots;
+    readonly props: Record<string, any>;
+}
+interface Definition extends HTMLElement, Partial<CustomHandlers>, DefinitionCallbacks {
 }
 interface DefinitionConstructor {
     new (...params: any[]): Definition;
     css?(tag: string): string;
+}
+interface AugmentedDefinition extends HTMLElement, Partial<CustomHandlers>, Required<DefinitionCallbacks> {
+    performRender: () => void;
+}
+interface AugmentedDefinitionConstructor {
+    new (...params: any[]): AugmentedDefinition;
 }
 /**
  * Tricks typescript so it doesn't complain if you use methods that are added
@@ -96,7 +105,7 @@ declare const Component: <T extends CustomElementConstructor>(superclass?: T) =>
  * @param definition The custom element definition
  * @param opts
  */
-declare const define: (tag: string, definition: DefinitionConstructor, opts?: ElementDefinitionOptions) => DefinitionConstructor;
+declare const define: (tag: string, definition: DefinitionConstructor, opts?: ElementDefinitionOptions) => AugmentedDefinitionConstructor;
 /**
  * Subscribe to changes in the store state and triggers a component update.
  * Subscriptions are cleaned up when the component is disconnected.

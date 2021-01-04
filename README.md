@@ -85,7 +85,8 @@ provides a different set of callbacks:
 - `update`: Invoked every time a store is updated or an attribute changes.
 
 - `render`: Invoked right after a component update. The returned value will be
-  used to render the component's contents.
+  used to render the component's contents. Renders are scheduled to run on
+  animation frames, so no renders will occur if the browser tab is not active.
   
 ## Templating
 Templating is done via

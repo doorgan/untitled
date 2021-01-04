@@ -51,6 +51,7 @@ describe('Callbacks', () => {
 
     const title = el.querySelector("h1");
     expect(title instanceof HTMLHeadingElement).toBe(true);
+    expect(title.textContent).toBe("Hello world!");
   })
 
   test('Fires lifecycle events', async () => {
@@ -187,13 +188,13 @@ test('Loads slots', async () => {
 
     render() {
       return html`
-          <div ref=${this.default_container}>
-            ${this.slots.default.map(x => x)}
-          </div>
-          <div ref=${this.slot_container}>
-            ${this.slots.slot}
-          </div>
-        `
+        <div ref=${this.default_container}>
+          ${this.slots.default.map(x => x)}
+        </div>
+        <div ref=${this.slot_container}>
+          ${this.slots.slot}
+        </div>
+      `
     }
   }
   define("slots-el-1", MyElement);
@@ -207,9 +208,10 @@ test('Loads slots', async () => {
       </slots-el-1>
     `)
 
-  await sleep();
-
   const el = el_ref.current!;
+
+  await event_promise(el, "rendered");
+
   expect(el.slots.default.length).toBeGreaterThan(0);
   expect(el.slots.slot instanceof HTMLHeadingElement).toBeTruthy();
 
@@ -240,16 +242,16 @@ test('Template tag slots', async () => {
 
   const template = document.createElement("template");
   render(template.content, html`
-      Text content
-      <h1 slot="slot">Title</h1>
-      <p>Some paragraph</p>
-    `)
+    Text content
+    <h1 slot="slot">Title</h1>
+    <p>Some paragraph</p>
+  `)
 
   const el = document.createElement("slots-el-2") as MyElement;
   el.appendChild(template);
   document.body.appendChild(el);
 
-  await sleep();
+  await event_promise(el, "rendered");
 
   expect(el.slots.default.length).toBeGreaterThan(0);
   expect(el.slots.slot instanceof HTMLHeadingElement).toBeTruthy();

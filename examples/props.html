@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<script defer src="https://unpkg.com/perf-monitor@0.3.0/dist/umd/perf-monitor.js"></script>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counter</title>
+  <script type="module">
+    import { define, Component, html, css } from "../dist/esm/index.js";
+
+    const cycle = (val) => {
+      if (val > 360) return 0;
+      return val + 1;
+    }
+
+    class MyElement extends Component() {
+
+      ready() {
+        let i = 0;
+        setInterval(() => {
+          i = cycle(i);
+          this.color = `hsl(${i} 100% 50%)`;
+          this.update();
+        }, 32);
+      }
+
+      render() {
+        return html`
+          <my-child .color=${this.color}></my-child>
+        `
+      };
+
+      static css = tag => css`
+        ${tag} {
+          display: inline-block;
+        }
+      `
+    }
+    define("my-element", MyElement);
+
+    define("my-child", class extends Component() {
+
+      static props = {
+        color: ""
+      }
+
+      render() {
+        return html`
+          <span class="square" style=${`--bg: ${this.color}`}></span>
+        `
+      }
+
+      static css = tag => css`
+        ${tag} > .square {
+          display: block;
+          width: 5rem;
+          height: 5rem;
+          background-color: var(--bg);
+        }
+      `
+    })
+
+    perfMonitor.startFPSMonitor();
+    perfMonitor.startMemMonitor();
+
+    for (let i = 0; i < 1000; i++) {
+      const el = document.createElement("my-element");
+      document.body.appendChild(el);
+    }
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
