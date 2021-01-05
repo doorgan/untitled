@@ -1,6 +1,7 @@
 {
   "include": [
-    "src"
+    "src",
+    "./plain-tag.d.ts"
   ],
   "exclude": [
     "src/**/*.test.ts"

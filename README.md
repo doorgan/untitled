@@ -156,6 +156,51 @@ method that automatically manages subscription, ubsubscription,
 and batches consecutive store updates so a single element
 update is guaranteed to be run in the next event loop microtask.
 
+## Reactive properties
+uhtml allows to pass properties to child elements via the `.prop=${value}`
+syntax. However, the element won't update every time a new property value is
+passed.
+If you want to achieve this behavior, your properties should be defined as a
+`props` property. untitled will watch for updates in the keys of that object
+and schedule an element update whenever they change.
+
+```js
+import { define, Component, html } from "../dist/index.modern.js";
+
+define("my-parent", class extends Component() {
+  constructor() {
+    super();
+    this.props = { counter: 0 }
+  }
+
+  ready() {
+    setInterval(() => {
+      this.props.counter += 1;
+    }, 1000)
+  }
+
+  render() {
+    return html`<my-child .count=${this.props.counter} />`
+  }
+})
+
+define("my-child", class extends Component() {
+  constructor() {
+    super();
+    this.props = { count: 0 };
+  }
+
+  render() {
+    return html`${this.props.count} seconds have elapsed.`
+  }
+})
+```
+
+While similar behaviour could be achieved for the element's local state, you are
+encouraged to manage the component's local state by using stores. Stores have
+the advantage that you can pass them as props to child elements, like you would
+do with stores in Svelte components.
+
 ## Slots
 untitled doesn't use shadow DOM, I don't think it's benefits are
 worth it's downsides, so untitled has it's own mechanism for slots.

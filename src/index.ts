@@ -5,18 +5,11 @@ import { store } from "./state";
 // @ts-ignore
 import DOMHandler from "reactive-props/esm/dom.js";
 
-const reactive = DOMHandler({ dom: true });
+const observe = DOMHandler({ dom: true });
 
 interface Ref<T extends HTMLElement> {
   current: T | null
 }
-
-/**
- * Creates a reference to be used in templates.
- * If an element has a `ref=${my_ref}` attribute in a template, the
- * `my_ref.current` will be set to that element once it's rendered.
- */
-const ref = <T extends HTMLElement>(): Ref<T> => ({ current: null });
 
 type Slots = { default: Node[] } & { [key: string]: Node }
 
@@ -112,6 +105,13 @@ export interface AugmentedDefinitionConstructor extends DefinitionConstructor {
 }
 
 /**
+ * Creates a reference to be used in templates.
+ * If an element has a `ref=${my_ref}` attribute in a template, the
+ * `my_ref.current` will be set to that element once it's rendered.
+ */
+const ref = <T extends HTMLElement>(): Ref<T> => ({ current: null });
+
+/**
  * Tricks typescript so it doesn't complain if you use methods that are added
  * while defining the component.
  *
@@ -138,6 +138,14 @@ let scheduled_renders = new WeakMap();
 const define = (tag: string, definition: DefinitionConstructor, opts: ElementDefinitionOptions = {}): AugmentedDefinitionConstructor => {
 
   const Class = class extends definition {
+
+    constructor() {
+      super();
+      if (this.props) {
+        Reflect.set(this, "props", observe(this, this.props, () => schedule_update(this)))
+      }
+    }
+
     connectedCallback() {
       this.connected();
 
@@ -158,9 +166,6 @@ const define = (tag: string, definition: DefinitionConstructor, opts: ElementDef
 
     ready() {
       load_slots(this);
-
-      // @ts-ignore
-      if (this.props) reactive(this, this.props, () => schedule_update(this))
 
       if (super.ready) {
         super.ready();

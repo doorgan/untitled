@@ -1,5 +1,5 @@
 import { render } from "uhtml";
-import { define, Component, html, css, store, ref, Ref, AugmentedDefinition } from "./index";
+import { define, Component, html, css, store, ref, Ref } from "../src/index";
 
 const event_promise = (element: HTMLElement, type: string) => new Promise(resolve => {
   element.addEventListener(type, resolve);
@@ -273,11 +273,10 @@ test('Template tag slots', async () => {
 
 test('Reactive props', async () => {
   class MyElement extends Component() {
-    static props = { count: 1 }
-    count: number = 1;
+    props = { count: 1 };
 
     render() {
-      return html`<span>${this.count}</span>`
+      return html`<span>${this.props.count}</span>`
     }
   }
   define(tag, MyElement);
@@ -287,11 +286,11 @@ test('Reactive props', async () => {
 
   await event_promise(el, "rendered");
 
-  expect(el.count).toBe(1);
+  expect(el.props.count).toBe(1);
   const span = el.querySelector("span")!;
   expect(span.textContent).toBe("1");
 
-  el.count = 5;
+  el.props.count = 5;
 
   await event_promise(el, "rendered");
 

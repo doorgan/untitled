@@ -1,0 +1,104 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="style.css">
+
+  <script defer src="https://unpkg.com/perf-monitor@0.3.0/dist/umd/perf-monitor.js"></script>
+  <script defer src="env.js"></script>
+
+  <script type="module">
+    import { define, html, store } from "../../dist/index.modern.js";
+
+    define("db-monster", class extends HTMLTableElement {
+      ready() {
+        perfMonitor.startFPSMonitor();
+        perfMonitor.startMemMonitor();
+
+        this.state = this.useStore(store({
+          data: []
+        }))
+
+        this.addEventListener("rendered", () => {
+          perfMonitor.endProfile('view update');
+        })
+
+        this.tick();
+      }
+
+      tick() {
+        setTimeout(() => this.tick(), ENV.timeout);
+        const data = ENV.generateData().toArray();
+        perfMonitor.startProfile('view update');
+        this.state.update({ data });
+      }
+
+      render() {
+        return html`
+          ${this.rows}
+        `
+      }
+
+      get rows() {
+        return html`
+          ${this.state().data.map((db, i) => html`
+            <tr is="db-monster-tr"
+                key=${db.name}
+                .data=${db}
+              >
+          `)}
+        `
+      }
+    }, { extends: "table" })
+
+    define("db-monster-tr", class extends HTMLTableRowElement {
+      constructor() {
+        super();
+        this.props = { data: {} };
+      }
+
+      get extras() {
+        const { topFiveQueries } = this.data.lastSample;
+        return topFiveQueries.map((query, j, a) => html`
+            <td class="${query.elapsedClassName}">
+              <span class="foo">
+                ${query.formatElapsed}
+              </span>
+              <div class="popover left">
+                <div class="popover-content">
+                  ${query.query}
+                </div>
+                <div class="arrow"></div>
+              </div>
+            </td>
+          `)
+      }
+
+      render() {
+        const data = this.data;
+        return html`
+          <td class="dbname">${data.dbname}</td>
+          <td class="query-count">
+            <span class=${data.lastSample.countClassName}>
+              ${data.lastSample.nbQueries}
+            </span>
+          </td>
+          ${this.extras}
+        `
+      }
+    }, { extends: "tr" })
+  </script>
+</head>
+
+<body>
+
+  <div id="link">
+    You're looking at untitled<br>
+    version of <a href="https://dbmonster.firebaseapp.com/">DBMonster</a>.
+  </div>
+
+  <div id="body">
+    <table class="table table-striped latest-data" is="db-monster">
+  </div>
+</body>
+
+</html>

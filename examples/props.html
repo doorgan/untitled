@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Counter</title>
   <script type="module">
-    import { define, Component, html, css } from "../dist/esm/index.js";
+    import { define, Component, html, css } from "../dist/index.modern.js";
 
     const cycle = (val) => {
       if (val > 360) return 0;
@@ -41,13 +41,16 @@
 
     define("my-child", class extends Component() {
 
-      static props = {
-        color: ""
+      constructor() {
+        super();
+        this.props = {
+          color: ""
+        }
       }
 
       render() {
         return html`
-          <span class="square" style=${`--bg: ${this.color}`}></span>
+          <span class="square" style=${`--bg: ${this.props.color}`}></span>
         `
       }
 

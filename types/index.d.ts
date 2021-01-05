@@ -5,12 +5,6 @@ import { store } from "./state";
 interface Ref<T extends HTMLElement> {
     current: T | null;
 }
-/**
- * Creates a reference to be used in templates.
- * If an element has a `ref=${my_ref}` attribute in a template, the
- * `my_ref.current` will be set to that element once it's rendered.
- */
-declare const ref: <T extends HTMLElement>() => Ref<T>;
 declare type Slots = {
     default: Node[];
 } & {
@@ -44,6 +38,7 @@ interface DefinitionCallbacks {
      * used to render the component's contents.
      */
     render?(): ReturnType<typeof html>;
+    performRender(): void;
     handleEvent(event: Event): void;
     /**
      * Subscribes to a store.
@@ -77,18 +72,24 @@ interface DefinitionCallbacks {
     readonly slots: Slots;
     readonly props: Record<string, any>;
 }
-interface Definition extends HTMLElement, Partial<CustomHandlers>, DefinitionCallbacks {
+export interface Definition extends HTMLElement, Partial<CustomHandlers>, DefinitionCallbacks {
 }
-interface DefinitionConstructor {
+export interface DefinitionConstructor {
     new (...params: any[]): Definition;
     css?(tag: string): string;
 }
-interface AugmentedDefinition extends HTMLElement, Partial<CustomHandlers>, Required<DefinitionCallbacks> {
+export interface AugmentedDefinition extends HTMLElement, Partial<CustomHandlers>, Required<DefinitionCallbacks> {
     performRender: () => void;
 }
-interface AugmentedDefinitionConstructor {
+export interface AugmentedDefinitionConstructor extends DefinitionConstructor {
     new (...params: any[]): AugmentedDefinition;
 }
+/**
+ * Creates a reference to be used in templates.
+ * If an element has a `ref=${my_ref}` attribute in a template, the
+ * `my_ref.current` will be set to that element once it's rendered.
+ */
+declare const ref: <T extends HTMLElement>() => Ref<T>;
 /**
  * Tricks typescript so it doesn't complain if you use methods that are added
  * while defining the component.

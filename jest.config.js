@@ -4,7 +4,7 @@ module.exports = {
     '^.+\\.ts?$': 'ts-jest'
   },
   testEnvironment: 'jsdom',
-  testRegex: '/src/.*\\.test?\\.ts$',
+  testRegex: '/tests/.*\\.test?\\.ts$',
   moduleFileExtensions: ['ts', 'js'],
   "transform": {
     "node_modules/reactive-props/.+\\.(j|t)sx?$": "ts-jest"
@@ -15,7 +15,7 @@ module.exports = {
   ],
   globals: {
     "ts-jest": {
-      tsConfig: {
+      tsconfig: {
         // allow js in typescript
         allowJs: true,
       },

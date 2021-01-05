@@ -1,5 +1,5 @@
 import * as flyd from "flyd";
-import { store } from "./state";
+import { store } from "../src/state";
 
 test('Creates a stream with the initial state', () => {
   const Store = store({ foo: 1 });

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<script defer src="https://unpkg.com/perf-monitor@0.3.0/dist/umd/perf-monitor.js"></script>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counter</title>
+  <script type="module">
+    import { define, Component, html } from "../dist/index.modern.js";
+
+    define("my-parent", class extends Component() {
+      constructor() {
+        super();
+        this.props = { counter: 0 }
+      }
+
+      ready() {
+        setInterval(() => {
+          this.props.counter += 1;
+        }, 1000)
+      }
+
+      render() {
+        return html`<my-child .count=${this.props.counter} />`
+      }
+    })
+
+    define("my-child", class extends Component() {
+      constructor() {
+        super();
+        this.props = { count: 0 };
+      }
+
+      render() {
+        return html`${this.props.count} seconds have elapsed.`
+      }
+    })
+  </script>
+</head>
+
+<body>
+  <my-parent></my-parent>
+</body>
+
+</html>
