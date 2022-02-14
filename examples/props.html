@@ -18,7 +18,7 @@
 
       ready() {
         let i = 0;
-        setInterval(function () {
+        setInterval(() => {
           i = cycle(i);
           this.color = `hsl(${i} 100% 50%)`;
           this.update();
@@ -31,11 +31,13 @@
         `
       };
 
-      static css(tag) { return css`
-        ${tag} {
-          display: inline-block;
-        }
-      `}
+      static css(tag) {
+        return css`
+          ${tag} {
+            display: inline-block;
+          }
+        `
+      }
     }
     define("my-element", MyElement);
 
@@ -54,14 +56,16 @@
         `
       }
 
-      static css(tag) { return css`
-        ${tag} > .square {
-          display: block;
-          width: 5rem;
-          height: 5rem;
-          background-color: var(--bg);
-        }
-      `}
+      static css(tag) {
+        return css`
+          ${tag} > .square {
+            display: block;
+            width: 5rem;
+            height: 5rem;
+            background-color: var(--bg);
+          }
+        `
+      }
     })
 
     perfMonitor.startFPSMonitor();
